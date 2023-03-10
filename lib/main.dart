@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -100,11 +98,11 @@ class _CalendarViewState extends State<CalendarView>
   late DateTime _selectedDay;
   Map<DateTime, List<Event>> _events =  <DateTime, List<Event>>{
     DateTime.utc(2023, 3, 10): [
-      Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),),
-      Event(title: 'TESTB', description: 'TEST', date:  DateTime.utc(2023, 3, 10),),
+      Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),index:1),
+      Event(title: 'TESTB', description: 'TEST', date:  DateTime.utc(2023, 3, 10),index:2),
     ],
     DateTime.utc(2023, 3, 15): [
-      Event(title: 'TESTC', description: 'TEST', date:  DateTime.utc(2023, 3, 15),),
+      Event(title: 'TESTC', description: 'TEST', date:  DateTime.utc(2023, 3, 15),index:1),
     ],
   };
   @override
@@ -148,23 +146,41 @@ class _CalendarViewState extends State<CalendarView>
     );
   }
 
+  void _routeToDetail(){
+        // Navigator.of(context).push();
+  }
+
   Widget _buildEventList() {
     final events = _events[_selectedDay];
     if (events == null || events.isEmpty) {
       return Center(
-        child: Text('No events for this day'),
+        child: Text('No events for this day', textScaleFactor: 5,),
       );
     }
-    return ListView.builder(
-      itemCount: events.length,
-      itemBuilder: (context, index) {
-        final event = events[index];
-        return ListTile(
-          title: Text(event.title),
-          subtitle: Text(event.description),
-        );
-      },
+    return Container(
+      child: Column(
+      children:[
+        Text('There are '+events.length.toString()+' events today!',
+        textScaleFactor: 5,),
+        ElevatedButton(
+          onPressed: () {
+            _addEvent(context);
+          },
+          child: Text("View Events"),
+        ),
+    ]
+      )
     );
+    //   ListView.builder(
+    //   itemCount: events.length,
+    //   itemBuilder: (context, index) {
+    //     final event = events[index];
+    //     return ListTile(
+    //       title: Text(event.title),
+    //       subtitle: Text(event.description),
+    //     );
+    //   },
+    // );
   }
   CalendarBuilders _calendarBuilder() {
     return CalendarBuilders(
@@ -184,7 +200,6 @@ class _CalendarViewState extends State<CalendarView>
       },
     markerBuilder: (context, date, events) {
     final eventCount = _events[date]?.length ?? 0;
-    final markers = <Widget>[];
     if (eventCount > 0) {
       return ListView.builder(
           shrinkWrap: true,
@@ -256,6 +271,7 @@ class _CalendarViewState extends State<CalendarView>
           },
           child: Text("Add Event"),
         ),
+        _buildEventList(),
       ],
     );
   }
