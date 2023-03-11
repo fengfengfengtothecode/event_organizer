@@ -1,13 +1,19 @@
+import 'package:flutter/material.dart';
+
 class Event {
-  final String title;
-  final String description;
-  final DateTime date;
-  final int index;
+   String title;
+   String description;
+   DateTime date;
+   String time;
+   int index;
+
+
 
   Event({
     required this.title,
     required this.description,
     required this.date,
+    required this.time,
     required this.index,
   });
 
@@ -16,6 +22,7 @@ class Event {
       'title': title,
       'date': date.toIso8601String(),
       'description': description,
+      'time': time,
       'index': index,
     };
   }
@@ -25,6 +32,7 @@ class Event {
         title: json['title'],
         date: DateTime.parse(json['date']),
         description: json['description'],
+        time: json['time'],
         index: json['index']
     );
   }
