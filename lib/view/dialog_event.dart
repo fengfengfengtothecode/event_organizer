@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 import '../model/event.dart';
 
@@ -7,14 +6,15 @@ import '../model/event.dart';
 class EventDialog extends StatefulWidget {
   final DateTime selectedDate;
   final Function(Event) onSave;
+  final Event? toBeEditEvent;
 
-  EventDialog({required this.selectedDate, required this.onSave});
+  const EventDialog({super.key, required this.selectedDate, required this.onSave, this.toBeEditEvent});
 
   @override
-  _EventDialogState createState() => _EventDialogState(selectedDate);
+  EventDialogState createState() => EventDialogState(selectedDate);
 }
 
-class _EventDialogState extends State<EventDialog> {
+class EventDialogState extends State<EventDialog> {
   final _formKey = GlobalKey<FormState>();
   late DateTime _selectedDate;
   late TextEditingController _titleController;
@@ -22,17 +22,17 @@ class _EventDialogState extends State<EventDialog> {
   late TextEditingController _dateController;
   late TextEditingController _timeController;
 
-  _EventDialogState(DateTime selectedDate){
-    this._selectedDate = selectedDate;
+  EventDialogState(selectedDate){
+    _selectedDate = selectedDate;
   }
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _descriptionController = TextEditingController();
+    _titleController = TextEditingController(text:widget.toBeEditEvent==null?'':'${widget.toBeEditEvent?.title}');
+    _descriptionController = TextEditingController(text:widget.toBeEditEvent==null?'':'${widget.toBeEditEvent?.description}');
     _dateController = TextEditingController(text: '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}');
-    _timeController = TextEditingController();
+    _timeController = TextEditingController(text:widget.toBeEditEvent==null?'':'${widget.toBeEditEvent?.time}');
   }
 
   @override
@@ -69,7 +69,7 @@ class _EventDialogState extends State<EventDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Create Event"),
+      title: const Text("Create Event"),
       content: SingleChildScrollView(
       scrollDirection: Axis.vertical,
         child:Form(
@@ -79,7 +79,7 @@ class _EventDialogState extends State<EventDialog> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: "Title"),
+                decoration: const InputDecoration(labelText: "Title"),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Title is required";
@@ -89,7 +89,7 @@ class _EventDialogState extends State<EventDialog> {
               ),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: "Description"),
+                decoration: const InputDecoration(labelText: "Description"),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Description is required";
@@ -105,7 +105,7 @@ class _EventDialogState extends State<EventDialog> {
                     widthFactor: 1.0,
                     heightFactor: 1.0,
                     child: IconButton(
-                      icon:Icon(Icons.event,),
+                      icon:const Icon(Icons.event,),
                       onPressed: _selectDate,
                     ),
                   ),
@@ -125,7 +125,7 @@ class _EventDialogState extends State<EventDialog> {
                     widthFactor: 1.0,
                     heightFactor: 1.0,
                     child: IconButton(
-                      icon:Icon(Icons.schedule,),
+                      icon:const Icon(Icons.schedule,),
                       onPressed: _selectTime,
                     ),
                   ),
@@ -144,26 +144,36 @@ class _EventDialogState extends State<EventDialog> {
 
       actions: [
         TextButton(
-          child: Text("Cancel"),
+          child: const Text("Cancel"),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         ElevatedButton(
-          child: Text("Save"),
+          child: const Text("Save"),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final title = _titleController.text;
               final description = _descriptionController.text;
               final time = _timeController.text;
-              final event = Event(
-                title: title,
-                description: description,
-                date: _selectedDate,
-                time: time,
-                index: 0
-              );
-              widget.onSave(event);
+              if(widget.toBeEditEvent==null) {
+                final event = Event(
+                  title: title,
+                  description: description,
+                  date: _selectedDate,
+                  time: time,
+                  index: 0,
+                  status: Event_Status.TO_DO.name,
+                );
+                widget.onSave(event);
+              }else{
+                final event = widget.toBeEditEvent;
+                event?.title = title;
+                event?.description =description;
+                event?.date = _selectedDate;
+                event?.time = time;
+                widget.onSave(event!);
+              }
               Navigator.of(context).pop();
             }
           },

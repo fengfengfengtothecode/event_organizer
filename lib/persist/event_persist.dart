@@ -25,7 +25,6 @@ class EventCRUD {
       // events[event.date] = [event];
     }
     String encodedMap = json.encode(events);
-    print(encodedMap);
     await prefs.setString('events', encodedMap);
   }
 
@@ -42,7 +41,12 @@ class EventCRUD {
     return events;
   }
 
-  Future<void> saveAll(String key, List<Event> updateEvents) async{
+  Future<List<Event>> saveAll(String key, List<Event> updateEvents) async{
+    int i=1;
+    updateEvents.forEach((s)=>{
+      s.index=i,
+      i++
+    });
     final prefs = await SharedPreferences.getInstance();
     final eventsJson = prefs.getString('events');
     Map<String, dynamic> events = {};
@@ -56,9 +60,10 @@ class EventCRUD {
         events.putIfAbsent(key, () => updateEvents);
         String encodedMap = json.encode(events);
         await prefs.setString('events', encodedMap);
+        return updateEvents;
       }
     }
-
+    return [];
   }
 
   Future<void> updateEvent(Event oldEvent, Event newEvent) async {

@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+
+enum Event_Status{
+  TO_DO,OVERDUE,DONE
+}
 
 class Event {
+
    String title;
    String description;
    DateTime date;
    String time;
    int index;
-
+   String status;
 
 
   Event({
@@ -15,6 +19,7 @@ class Event {
     required this.date,
     required this.time,
     required this.index,
+    required this.status
   });
 
   Map<String, dynamic> toJson() {
@@ -24,6 +29,7 @@ class Event {
       'description': description,
       'time': time,
       'index': index,
+      'status': status,
     };
   }
 
@@ -33,7 +39,8 @@ class Event {
         date: DateTime.parse(json['date']),
         description: json['description'],
         time: json['time'],
-        index: json['index']
+        index: json['index'],
+        status: json['status']
     );
   }
 }

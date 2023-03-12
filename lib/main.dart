@@ -5,9 +5,11 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'model/event.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,20 +17,22 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: NavigationBar(),
+      home: const NavigationBar(),
     );
   }
 }
 
 class NavigationBar extends StatefulWidget {
+  const NavigationBar({super.key});
+
   @override
-  _NavigationBarState createState() => _NavigationBarState();
+  NavigationBarState createState() => NavigationBarState();
 }
 
-class _NavigationBarState extends State<NavigationBar> {
+class NavigationBarState extends State<NavigationBar> {
   int _selectedIndex = 0;
-  List<Widget> _pages = [
-    GuidePage(),
+  final List<Widget> _pages = [
+    const GuidePage(),
     CalendarView(),
     // TransitionPage(),
   ];
@@ -43,7 +47,7 @@ class _NavigationBarState extends State<NavigationBar> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Navigation Bar'),
+        title: const Text('Navigation Bar'),
       ),
       body: Center(
         child: _pages[_selectedIndex],
@@ -51,7 +55,7 @@ class _NavigationBarState extends State<NavigationBar> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.help),
             label: 'Guide',
@@ -79,34 +83,38 @@ class _NavigationBarState extends State<NavigationBar> {
 }
 
 class GuidePage extends StatelessWidget {
+  const GuidePage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Text('This is the guide page.'),
     );
   }
 }
 
 class CalendarView extends StatefulWidget {
-  @override
-  _CalendarViewState createState() => _CalendarViewState();
+  CalendarView({super.key});
 
-  EventCRUD eventCRUD = EventCRUD();
+  @override
+  CalendarViewState createState() => CalendarViewState();
+
+  final EventCRUD eventCRUD = EventCRUD();
 }
 
-class _CalendarViewState extends State<CalendarView>
+class CalendarViewState extends State<CalendarView>
     with TickerProviderStateMixin {
   bool _isLoading = false;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.utc(DateTime.now().year,DateTime.now().month,DateTime.now().day);
   late DateTime _selectedDay;
   Map<DateTime, List<Event>> _events =  <DateTime, List<Event>>{
     DateTime.utc(2023, 3, 10): [
-      Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'10:00AM',index:1),
-      Event(title: 'TESTB', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'03:00PM',index:2),
+      Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'10:00AM',index:1,status:Event_Status.TO_DO.name),
+      Event(title: 'TESTB', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'03:00PM',index:2,status:Event_Status.TO_DO.name),
     ],
     DateTime.utc(2023, 3, 15): [
-      Event(title: 'TESTC', description: 'TEST', date:  DateTime.utc(2023, 3, 15),time:'10:00AM',index:1),
+      Event(title: 'TESTC', description: 'TEST', date:  DateTime.utc(2023, 3, 15),time:'10:00AM',index:1,status:Event_Status.TO_DO.name),
     ],
   };
 
@@ -152,9 +160,8 @@ class _CalendarViewState extends State<CalendarView>
               widget.eventCRUD.createEvent(event).then((value) => {
                 _getEvents()
               });
-              print("done");
             }catch(e){
-              print(e);
+              //throw something
             }
           });
         },
@@ -193,16 +200,51 @@ class _CalendarViewState extends State<CalendarView>
         });
   }
 
+  double toDouble(TimeOfDay myTime) => myTime.hour + myTime.minute/60.0;
+  bool isOverdue(Event event){
+    DateTime now = DateTime.now().toUtc();
+    DateTime eventDate = event.date;
+    TimeOfDay nowTime = TimeOfDay.now();
+    List<String> time =  event.time.substring(0, event.time.length - 2).split(':');
+    TimeOfDay eventTime = TimeOfDay.now();
+    if(event.time.contains('PM')){
+      eventTime = TimeOfDay(hour:int.parse(time.first)==12?12:int.parse(time.first)+12,minute:int.parse(time.last));
+    }else{
+      eventTime = TimeOfDay(hour:int.parse(time.first),minute:int.parse(time.last));
+    }
+    if(now.day==eventDate.day &&now.month==eventDate.month&&now.year==eventDate.year){
+      if(toDouble(nowTime)>toDouble(eventTime)){
+        event.status = Event_Status.OVERDUE.name;
+        return true;
+      }else{
+        return false;
+      }
+    }else{
+      return false;
+    }
+  }
+
+  Color _colorDeciderStatus(Event event){
+    if(event.status==Event_Status.DONE.name){
+      return Colors.lightGreenAccent;
+    }else if(event.status==Event_Status.OVERDUE.name||isOverdue(event)){
+      return Colors.orangeAccent;
+    }else{
+      return Colors.white70;
+    }
+  }
+
   List<Widget> _buildList(event){
     return <Widget>[
       for(final items in event)
         Card(
-          color: Colors.white70,
+          color: _colorDeciderStatus(items),
           key: ValueKey(items),
           elevation: 1,
           child: ListTile(
-            title: Text((items.index).toString()+") "+items.title+"  (ON "+items.time+")"),
-            leading: Icon(Icons.event,color: Colors.blue,),
+            title: Text("${(items.index).toString()}) ${items.title}  (ON ${items.time})"),
+            subtitle: Text("${items.status}"),
+            leading: const Icon(Icons.event,color: Colors.blue,),
 
           ),
         ),
@@ -210,18 +252,16 @@ class _CalendarViewState extends State<CalendarView>
         onPressed: () {
           _routeToDetail(event);
         },
-        child: Text("View Events"),
+        child: const Text("View Events"),
       ),
     ];
   }
   void _simulateLoading() {
       setState(() {
-        print("loading");
         _isLoading = true;
       });
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () {
         setState(() {
-          print("finish load");
           _isLoading = false;
         });
       });
@@ -230,7 +270,7 @@ class _CalendarViewState extends State<CalendarView>
   Widget _buildEventList() {
     final events = _events[_selectedDay];
     if (events == null || events.isEmpty) {
-      return  FittedBox(
+      return  const FittedBox(
         fit:BoxFit.fitWidth,
          child: Center(
             child: Text('No events for this day',textScaleFactor: 3,),
@@ -238,17 +278,15 @@ class _CalendarViewState extends State<CalendarView>
       );
 
     }
-    return Container(
-      child: Column(
-      children:
-        _buildList(events),
-          // FittedBox(
-          // fit:BoxFit.fitWidth,
-          // child: Center(
-          //   child: Text('There are '+events.length.toString()+' events today!',textScaleFactor: 3,),
-          // )
-          // ),
-      )
+    return Column(
+    children:
+      _buildList(events),
+        // FittedBox(
+        // fit:BoxFit.fitWidth,
+        // child: Center(
+        //   child: Text('There are '+events.length.toString()+' events today!',textScaleFactor: 3,),
+        // )
+        // ),
     );
     //   ListView.builder(
     //   itemCount: events.length,
@@ -265,15 +303,15 @@ class _CalendarViewState extends State<CalendarView>
     return CalendarBuilders(
       selectedBuilder: (context, date, events) {
         return Container(
-          margin: EdgeInsets.all(4),
+          margin: const EdgeInsets.all(4),
           alignment: Alignment.center,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.deepPurple,
             shape: BoxShape.circle,
           ),
           child: Text(
             date.day.toString(),
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
         );
       },
@@ -291,14 +329,14 @@ class _CalendarViewState extends State<CalendarView>
               child: Container(
                 // height: 7,
                 width: 5,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.black),
               ),
             );
           });
     }
-    return SizedBox();
+    return const SizedBox();
     },
       // singleMarkerBuilder: (context, date, _) {
       //   return Container(
@@ -327,7 +365,7 @@ class _CalendarViewState extends State<CalendarView>
                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                 calendarFormat: _calendarFormat,
                 onDaySelected: _onDaySelected,
-                calendarStyle: CalendarStyle(
+                calendarStyle: const CalendarStyle(
                   // todayDecoration: BoxDecoration(
                   //   color: Colors.blue,
                   //   shape: BoxShape.circle,
@@ -337,17 +375,17 @@ class _CalendarViewState extends State<CalendarView>
                     shape: BoxShape.circle,
                   ),
                 ),
-                headerStyle: HeaderStyle(
+                headerStyle: const HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
                 ),
-                availableCalendarFormats: {
+                availableCalendarFormats: const {
                   CalendarFormat.month: 'Month',
                   CalendarFormat.week: 'Week',
                 },
                 calendarBuilders: _calendarBuilder()
             ),
-            _isLoading?TransitionPage():_buildEventList(),
+            _isLoading?const TransitionPage():_buildEventList(),
           ],
         ),
        ),
@@ -364,22 +402,22 @@ class _CalendarViewState extends State<CalendarView>
 
 class ReorderableList extends StatefulWidget {
   List<Event> _items = [];
-  EventCRUD _crud = EventCRUD();
+  final EventCRUD _crud = EventCRUD();
 
-  ReorderableList(List<Event> events){
+  ReorderableList(List<Event> events, {super.key}){
     _items = events;
   }
 
   @override
-  _ReorderableListState createState() => _ReorderableListState(_items);
+  ReorderableListState createState() => ReorderableListState(_items);
 }
 
 
-class _ReorderableListState extends State<ReorderableList> {
+class ReorderableListState extends State<ReorderableList> {
   List<Event> _items = [];
 
-  _ReorderableListState(events){
-      _items=events;
+  ReorderableListState(item){
+      _items=item;
       _items.sort((a,b)=>a.index.compareTo(b.index));
   }
 
@@ -392,7 +430,6 @@ class _ReorderableListState extends State<ReorderableList> {
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    print(oldIndex.toString()+"  "+newIndex.toString());
     setState(() {
       if (newIndex > oldIndex) {
         newIndex -= 1;
@@ -409,13 +446,157 @@ class _ReorderableListState extends State<ReorderableList> {
 
   void _deleteEvent(Event event){
     widget._crud.deleteEvent(event).then((value) => {
-      print(value),
       _onLoadList(value),
     });
   }
 
+  void _doneEvent(Event event){
+    event.status = Event_Status.DONE.name;
+    widget._crud.saveAll(event.date.toIso8601String(), List.from(_items)).then((value) => {
+      _onLoadList(value)
+    });
+  }
+
+
   void _onLoadList(events){
       _setEvents(events);
+  }
+
+  double toDouble(TimeOfDay myTime) => myTime.hour + myTime.minute/60.0;
+  bool isOverdue(Event event){
+    DateTime now = DateTime.now().toUtc();
+    DateTime eventDate = event.date;
+    TimeOfDay nowTime = TimeOfDay.now();
+    List<String> time =  event.time.substring(0, event.time.length - 2).split(':');
+    TimeOfDay eventTime = TimeOfDay.now();
+    if(event.time.contains('PM')){
+      eventTime = TimeOfDay(hour:int.parse(time.first)==12?12:int.parse(time.first)+12,minute:int.parse(time.last));
+    }else{
+      eventTime = TimeOfDay(hour:int.parse(time.first),minute:int.parse(time.last));
+    }
+    if(now.day==eventDate.day &&now.month==eventDate.month&&now.year==eventDate.year){
+      if(toDouble(nowTime)>toDouble(eventTime)){
+        event.status = Event_Status.OVERDUE.name;
+        return true;
+      }else{
+        return false;
+      }
+    }else{
+      return false;
+    }
+  }
+
+  Color _colorDeciderStatus(Event event){
+    if(event.status==Event_Status.DONE.name){
+      return Colors.lightGreenAccent;
+    }else if(event.status==Event_Status.OVERDUE.name||isOverdue(event)){
+      return Colors.orangeAccent;
+    }else{
+      return Colors.white70;
+    }
+  }
+
+  List<Widget> doneButton(Event event){
+    return <Widget>[
+    if(event.status==Event_Status.DONE.name)
+     IconButton(
+    icon:const Icon(Icons.done,color: Colors.blue),
+    tooltip: "Done",
+    onPressed: (){
+    _doneEvent(event);
+    }
+    )
+
+    ];
+
+  }
+
+  void _editEvent(BuildContext context,Event editEvent){
+    showDialog(
+      context: context,
+      builder: (context) => EventDialog(
+        selectedDate: editEvent.date,
+        toBeEditEvent: editEvent,
+        onSave: (event) {
+          setState(() {
+            // _events[event.date] = [...?_events[event.date], event];
+            try{
+              // _items.add(event);
+              widget._crud.saveAll(event.date.toIso8601String(), List.from(_items)).then((value) => {
+                _onLoadList(value)
+              });
+            }catch(e){
+              //throw something
+            }
+          });
+        },
+      ),
+      // builder: (BuildContext context) {
+      //   return AlertDialog(
+      //     title: Text("Add Event"),
+      //     content: Text("Add event for $_selectedDay"),
+      //     actions: [
+      //       TextButton(
+      //         onPressed: () {
+      //           Navigator.of(context).pop();
+      //         },
+      //         child: Text("CANCEL"),
+      //       ),
+      //       TextButton(
+      //         onPressed: () {
+      //           // Save the event and close the dialog
+      //           Navigator.of(context).pop();
+      //         },
+      //         child: Text("SAVE"),
+      //       ),
+      //     ],
+      //   );
+      // },
+    );
+  }
+
+  void _addEvent(BuildContext context) {
+    // Implement your logic to add an event for the selected day here
+    showDialog(
+      context: context,
+      builder: (context) => EventDialog(
+        selectedDate: _items.first.date,
+        onSave: (event) {
+          setState(() {
+            // _events[event.date] = [...?_events[event.date], event];
+            try{
+              _items.add(event);
+              widget._crud.saveAll(event.date.toIso8601String(), List.from(_items)).then((value) => {
+                _onLoadList(value)
+              });
+            }catch(e){
+              //throw something
+            }
+          });
+        },
+      ),
+      // builder: (BuildContext context) {
+      //   return AlertDialog(
+      //     title: Text("Add Event"),
+      //     content: Text("Add event for $_selectedDay"),
+      //     actions: [
+      //       TextButton(
+      //         onPressed: () {
+      //           Navigator.of(context).pop();
+      //         },
+      //         child: Text("CANCEL"),
+      //       ),
+      //       TextButton(
+      //         onPressed: () {
+      //           // Save the event and close the dialog
+      //           Navigator.of(context).pop();
+      //         },
+      //         child: Text("SAVE"),
+      //       ),
+      //     ],
+      //   );
+      // },
+    );
   }
 
   @override
@@ -427,7 +608,7 @@ class _ReorderableListState extends State<ReorderableList> {
       floatingActionButton: FloatingActionButton.extended(
           onPressed: (){
             setState(() {
-              _items.add(Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'10:00AM',index:_items.length+2));
+              _items.add(Event(title: 'TEST', description: 'TEST', date:  DateTime.utc(2023, 3, 10),time:'10:00AM',index:_items.length+2,status:Event_Status.DONE.name));
                   });
              },
           label: const Text("Add Event"),
@@ -438,20 +619,43 @@ class _ReorderableListState extends State<ReorderableList> {
         children:  <Widget>[
           for(final items in widget._items)
             Card(
-              color: Colors.white70,
+              color: _colorDeciderStatus(items),
               key: ValueKey(items),
               elevation: 1,
               child: ListTile(
-                title: Text((items.index).toString()+") "+items.title+"  (ON "+items.time+")"),
-                subtitle: Text(items.description),
-                leading: Icon(Icons.event,color: Colors.blue,),
-                trailing: IconButton(
-                  icon:const Icon(Icons.delete,color: Colors.red),
-                  tooltip: "Delete",
-                  onPressed: (){
-                    _deleteEvent(items);
-                  }
-                ),
+                title: Text("${items.index}) ${items.title}  (ON ${items.time})"),
+                subtitle: Text("${items.description} (${items.status})"),
+                leading: const Icon(Icons.event,color: Colors.blue,),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if(items.status!=Event_Status.DONE.name)...[
+                       IconButton(
+                          icon:const Icon(Icons.done,color: Colors.blue),
+                          tooltip: "Done",
+                          onPressed: (){
+                            _doneEvent(items);
+                          }
+                      )
+                    ],
+                    if(items.status==Event_Status.TO_DO.name)...[
+                      IconButton(
+                          icon:const Icon(Icons.edit,color: Colors.blue),
+                          tooltip: "Edit",
+                          onPressed: (){
+                            _editEvent(context,items);
+                          }
+                      )
+                    ],
+                    IconButton(
+                      icon:const Icon(Icons.delete,color: Colors.red),
+                      tooltip: "Delete",
+                      onPressed: (){
+                        _deleteEvent(items);
+                      }
+                  ),
+                  ],
+                )
               ),
             ),
         ],
@@ -467,11 +671,13 @@ class _ReorderableListState extends State<ReorderableList> {
 }
 
 class TransitionPage extends StatefulWidget {
+  const TransitionPage({super.key});
+
   @override
-  _TransitionPageState createState() => _TransitionPageState();
+  TransitionPageState createState() => TransitionPageState();
 }
 
-class _TransitionPageState extends State<TransitionPage> {
+class TransitionPageState extends State<TransitionPage> {
   // bool _isLoading =false;
 
   @override
@@ -493,7 +699,7 @@ class _TransitionPageState extends State<TransitionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child:  CircularProgressIndicator()
     );
   }
