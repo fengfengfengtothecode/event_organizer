@@ -1,3 +1,4 @@
+import 'package:event_organizer/controller/navigator_controller.dart';
 import 'package:event_organizer/persist/event_persist.dart';
 import 'package:event_organizer/view/dialog_event.dart';
 import 'package:flutter/material.dart';
@@ -31,16 +32,16 @@ class NavigationBar extends StatefulWidget {
 }
 
 class NavigationBarState extends State<NavigationBar> {
-  int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    GuidePage(),
+  NavigatorController _navigatorController = NavigatorController();
+  late final List<Widget> _pages = [
+    GuidePage((value)=>_onItemTapped(value)),
     CalendarView(),
     // TransitionPage(),
   ];
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _navigatorController.update(index);
     });
   }
 
@@ -51,10 +52,10 @@ class NavigationBarState extends State<NavigationBar> {
         title: const Text('Navigation Bar'),
       ),
       body: Center(
-        child: _pages[_selectedIndex],
+        child: _pages[_navigatorController.index],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: _navigatorController.index,
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
@@ -84,6 +85,7 @@ class NavigationBarState extends State<NavigationBar> {
 }
 
 class GuidePage extends StatelessWidget {
+  NavigatorController _navigatorController =NavigatorController();
   final List<OnbordingData> list = [
     OnbordingData(
       image: AssetImage('images/head.png'),
@@ -106,8 +108,8 @@ class GuidePage extends StatelessWidget {
       descText: Text("This is desc4"),
     ),
   ];
-
-  GuidePage({super.key});
+  final Function(int) onItemTapped;
+  GuidePage(this.onItemTapped, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -120,9 +122,10 @@ class GuidePage extends StatelessWidget {
         Colors.white,
         Colors.red,
       ],
-      pageRoute: MaterialPageRoute(
-        builder: (context) => CalendarView(),
-      ),
+      doneRead: (i)=>{
+        _navigatorController.update(i),
+        onItemTapped(i)
+      },
       nextButton: Text(
         "NEXT",
         style: TextStyle(
@@ -260,8 +263,13 @@ class CalendarViewState extends State<CalendarView>
     DateTime now = DateTime.now().toUtc();
     DateTime eventDate = event.date;
     TimeOfDay nowTime = TimeOfDay.now();
-    List<String> time =  event.time.substring(0, event.time.length - 2).split(':');
-    TimeOfDay eventTime = TimeOfDay.now();
+    List<String> time;
+    if(event.time.contains("M")){
+      time =  event.time.trim().substring(0, event.time.length - 2).trim().split(':');
+    }else{
+      time =  event.time.trim().split(':');
+    }
+    TimeOfDay eventTime;
     if(event.time.contains('PM')){
       eventTime = TimeOfDay(hour:int.parse(time.first)==12?12:int.parse(time.first)+12,minute:int.parse(time.last));
     }else{
@@ -522,8 +530,12 @@ class ReorderableListState extends State<ReorderableList> {
     DateTime now = DateTime.now().toUtc();
     DateTime eventDate = event.date;
     TimeOfDay nowTime = TimeOfDay.now();
-    List<String> time =  event.time.substring(0, event.time.length - 2).split(':');
-    TimeOfDay eventTime = TimeOfDay.now();
+    List<String> time ;
+    if(event.time.contains("M")){
+      time =  event.time.trim().substring(0, event.time.length - 2).trim().split(':');
+    }else{
+      time =  event.time.trim().split(':');
+    }TimeOfDay eventTime = TimeOfDay.now();
     if(event.time.contains('PM')){
       eventTime = TimeOfDay(hour:int.parse(time.first)==12?12:int.parse(time.first)+12,minute:int.parse(time.last));
     }else{

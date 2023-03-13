@@ -30,6 +30,7 @@ environment:
 dependencies:
   table_calendar: ^3.0.9
   shared_preferences: ^2.0.10
+  mvc_pattern: ^8.12.0
   flutter:
     sdk: flutter
   flutter_walkthrough_screen: ^2.0.2
