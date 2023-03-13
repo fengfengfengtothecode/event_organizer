@@ -8,6 +8,7 @@ class NavigatorController extends ControllerMVC{
 
 
   int get index=> NavigateModel.index;
+  String get appBarName=>NavigateModel.appBarName;
 
   void update(int i){
       print("update"+ i.toString());
