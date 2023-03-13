@@ -1,3 +1,4 @@
+import 'package:event_organizer/controller/my_app_controller.dart';
 import 'package:event_organizer/controller/navigator_controller.dart';
 import 'package:event_organizer/persist/event_persist.dart';
 import 'package:event_organizer/view/dialog_event.dart';
@@ -7,10 +8,12 @@ import 'package:flutter_walkthrough_screen/flutter_walkthrough_screen.dart';
 
 import 'model/event.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final MyAppController _myAppController = MyAppController();
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const NavigationBar(),
+      home: _myAppController.checkIsFirstTimeOnboard(),
     );
   }
 }
