@@ -2,6 +2,7 @@ import 'package:event_organizer/persist/event_persist.dart';
 import 'package:event_organizer/view/dialog_event.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_walkthrough_screen/flutter_walkthrough_screen.dart';
 
 import 'model/event.dart';
 
@@ -32,7 +33,7 @@ class NavigationBar extends StatefulWidget {
 class NavigationBarState extends State<NavigationBar> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
-    const GuidePage(),
+    GuidePage(),
     CalendarView(),
     // TransitionPage(),
   ];
@@ -83,15 +84,69 @@ class NavigationBarState extends State<NavigationBar> {
 }
 
 class GuidePage extends StatelessWidget {
-  const GuidePage({super.key});
+  final List<OnbordingData> list = [
+    OnbordingData(
+      image: AssetImage('images/head.png'),
+      titleText:Text("This is Title1"),
+      descText: Text("This is desc1"),
+    ),
+    OnbordingData(
+      image: AssetImage("images/head.png"),
+      titleText:Text("This is Title2"),
+      descText: Text("This is desc2"),
+    ),
+    OnbordingData(
+      image: AssetImage("images/head.png"),
+      titleText:Text("This is Title3"),
+      descText: Text("This is desc4"),
+    ),
+    OnbordingData(
+      image: AssetImage("images/head.png"),
+      titleText:Text("This is Title4"),
+      descText: Text("This is desc4"),
+    ),
+  ];
+
+  GuidePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('This is the guide page.'),
+    /* remove the back button in the AppBar is to set automaticallyImplyLeading to false
+  here we need to pass the list and the route for the next page to be opened after this. */
+    return IntroScreen(
+      onbordingDataList: list,
+      colors: [
+        //list of colors for per pages
+        Colors.white,
+        Colors.red,
+      ],
+      pageRoute: MaterialPageRoute(
+        builder: (context) => CalendarView(),
+      ),
+      nextButton: Text(
+        "NEXT",
+        style: TextStyle(
+          color: Colors.purple,
+        ),
+      ),
+      lastButton: Text(
+        "GOT IT",
+        style: TextStyle(
+          color: Colors.purple,
+        ),
+      ),
+      skipButton: Text(
+        "SKIP",
+        style: TextStyle(
+          color: Colors.purple,
+        ),
+      ),
+      selectedDotColor: Colors.orange,
+      unSelectdDotColor: Colors.grey,
     );
   }
 }
+
 
 class CalendarView extends StatefulWidget {
   CalendarView({super.key});
