@@ -25,7 +25,7 @@ class MyAppController extends ControllerMVC{
   }
 
   Future<void> onboarding() async{
-    _onboard_record.onboard().then((value) => {
+    await _onboard_record.onboard().then((value) => {
       update(value)
     });
   }
