@@ -45,10 +45,10 @@ class EventDialogState extends State<EventDialog> {
   }
 
   void _selectDate() async{
-    final DateTime? newDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2050));
+    final DateTime? newDate = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2000), lastDate: DateTime(2050));
     if (newDate != null) {
       setState(() {
-        _selectedDate = newDate.toUtc();
+        _selectedDate = DateTime.utc(newDate.year,newDate.month,newDate.day);
         _dateController.text = '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
       });
     }
